@@ -1,12 +1,14 @@
 "use client"
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
-import { api } from "@/lib/api"
+import api from "@/lib/api"
 
 interface User {
   id: number
   name: string
   email: string
+  bio?: string
+  profilePicture?: string
 }
 
 interface AuthContextType {
@@ -31,27 +33,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const storedToken = localStorage.getItem("token")
     if (storedToken) {
       setToken(storedToken)
-      fetchCurrentUser(storedToken)
+      fetchCurrentUser()
     } else {
       setIsLoading(false)
     }
   }, [])
 
-  const fetchCurrentUser = async (authToken: string) => {
+  const fetchCurrentUser = async () => {
     try {
-      const response = await fetch(`${api.baseUrl}/users/me`, {
-        headers: {
-          Authorization: `Bearer ${authToken}`,
-        },
-      })
-
-      if (response.ok) {
-        const userData = await response.json()
-        setUser(userData)
-      } else {
-        // Token might be invalid or expired
-        logout()
-      }
+      const userData = await api.users.getCurrentUser()
+      setUser(userData)
     } catch (error) {
       console.error("Error fetching user data:", error)
       logout()
@@ -61,42 +52,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   const login = async (email: string, password: string) => {
-    const response = await fetch(`${api.baseUrl}/auth/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ email, password }),
-    })
-
-    if (!response.ok) {
-      throw new Error("Login failed")
+    try {
+      const data = await api.auth.login(email, password)
+      setToken(data.token)
+      setUser(data.user)
+      localStorage.setItem("token", data.token)
+    } catch (error) {
+      console.error("Login error:", error)
+      throw new Error("Invalid email or password")
     }
-
-    const data = await response.json()
-    setToken(data.token)
-    setUser(data.user)
-    localStorage.setItem("token", data.token)
   }
 
   const register = async (name: string, email: string, password: string) => {
-    const response = await fetch(`${api.baseUrl}/auth/register`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ name, email, password }),
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData || "Registration failed")
+    try {
+      const data = await api.auth.register(name, email, password)
+      setToken(data.token)
+      setUser(data.user)
+      localStorage.setItem("token", data.token)
+    } catch (error) {
+      console.error("Registration error:", error)
+      throw new Error("Registration failed. Email may already be in use.")
     }
-
-    const data = await response.json()
-    setToken(data.token)
-    setUser(data.user)
-    localStorage.setItem("token", data.token)
   }
 
   const logout = () => {

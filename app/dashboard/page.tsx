@@ -1,11 +1,9 @@
 "use client"
 
 import { Badge } from "@/components/ui/badge"
-
 import type React from "react"
-
 import { useEffect, useState } from "react"
-import { api } from "@/lib/api"
+import api from "@/lib/api"
 import DashboardLayout from "@/components/dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"

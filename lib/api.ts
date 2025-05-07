@@ -1,111 +1,120 @@
-// Configuration for connecting to the Spring Boot backend
-export const api = {
-  baseUrl: "http://localhost:8080", // Change this to your Spring Boot backend URL
+import axios from "axios"
 
-  // Helper function to handle API requests with authentication
-  async fetch(endpoint: string, options: RequestInit = {}) {
+// Create an axios instance for the Spring Boot backend
+const axiosInstance = axios.create({
+  baseURL: "http://localhost:8080", // Change this to your Spring Boot backend URL
+  headers: {
+    "Content-Type": "application/json",
+  },
+})
+
+// Add a request interceptor to include the auth token in all requests
+axiosInstance.interceptors.request.use(
+  (config) => {
     const token = localStorage.getItem("token")
-
-    const headers = {
-      "Content-Type": "application/json",
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
     }
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  },
+)
 
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      ...options,
-      headers,
-    })
-
-    // Handle 401 Unauthorized - token expired or invalid
-    if (response.status === 401) {
-      localStorage.removeItem("token")
-      window.location.href = "/auth/login"
-      throw new Error("Session expired. Please login again.")
-    }
-
+// Add a response interceptor to handle auth errors
+axiosInstance.interceptors.response.use(
+  (response) => {
     return response
   },
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // Handle unauthorized errors (expired token, etc.)
+      localStorage.removeItem("token")
+      window.location.href = "/auth/login"
+    }
+    return Promise.reject(error)
+  },
+)
 
+// API service using axios
+export const api = {
   // Posts API
   posts: {
     getAll: async (page = 0, size = 10) => {
-      const response = await api.fetch(`/posts?page=${page}&size=${size}`)
-      return response.json()
+      const response = await axiosInstance.get(`/posts?page=${page}&size=${size}`)
+      return response.data
     },
 
     getFeed: async (page = 0, size = 10) => {
-      const response = await api.fetch(`/posts/feed?page=${page}&size=${size}`)
-      return response.json()
+      const response = await axiosInstance.get(`/posts/feed?page=${page}&size=${size}`)
+      return response.data
     },
 
     getById: async (id: number) => {
-      const response = await api.fetch(`/posts/${id}`)
-      return response.json()
+      const response = await axiosInstance.get(`/posts/${id}`)
+      return response.data
     },
 
     create: async (content: string, type: string, media?: File[]) => {
-      const formData = new FormData()
-      formData.append("content", content)
-      formData.append("type", type)
+      // For file uploads, we still need to use FormData
+      if (media && media.length > 0) {
+        const formData = new FormData()
+        formData.append("content", content)
+        formData.append("type", type)
 
-      if (media) {
         media.forEach((file) => {
           formData.append("media", file)
         })
+
+        const response = await axiosInstance.post("/posts", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        })
+        return response.data
+      } else {
+        // Without files, we can use JSON
+        const response = await axiosInstance.post("/posts", {
+          content,
+          type,
+        })
+        return response.data
       }
-
-      const response = await api.fetch("/posts", {
-        method: "POST",
-        body: formData,
-        headers: {}, // Let the browser set the content type for FormData
-      })
-
-      return response.json()
     },
 
     update: async (id: number, content: string) => {
-      const response = await api.fetch(`/posts/${id}`, {
-        method: "PUT",
-        body: JSON.stringify({ content }),
+      const response = await axiosInstance.put(`/posts/${id}`, {
+        content,
       })
-
-      return response.json()
+      return response.data
     },
 
     delete: async (id: number) => {
-      await api.fetch(`/posts/${id}`, {
-        method: "DELETE",
-      })
+      await axiosInstance.delete(`/posts/${id}`)
     },
 
     like: async (id: number) => {
-      const response = await api.fetch(`/posts/${id}/like`, {
-        method: "POST",
-      })
-
-      return response.json()
+      const response = await axiosInstance.post(`/posts/${id}/like`)
+      return response.data
     },
 
     unlike: async (id: number) => {
-      const response = await api.fetch(`/posts/${id}/like`, {
-        method: "DELETE",
-      })
-
-      return response.json()
+      const response = await axiosInstance.delete(`/posts/${id}/like`)
+      return response.data
     },
   },
 
   // Learning Plans API
   learningPlans: {
     getAll: async (page = 0, size = 10) => {
-      const response = await api.fetch(`/learning-plans?page=${page}&size=${size}`)
-      return response.json()
+      const response = await axiosInstance.get(`/learning-plans?page=${page}&size=${size}`)
+      return response.data
     },
 
     getMyPlans: async (page = 0, size = 10) => {
-      const response = await api.fetch(`/learning-plans/my-plans?page=${page}&size=${size}`)
-      return response.json()
+      const response = await axiosInstance.get(`/learning-plans/my-plans?page=${page}&size=${size}`)
+      return response.data
     },
 
     create: async (plan: {
@@ -118,12 +127,8 @@ export const api = {
         resourceUrl?: string
       }>
     }) => {
-      const response = await api.fetch("/learning-plans", {
-        method: "POST",
-        body: JSON.stringify(plan),
-      })
-
-      return response.json()
+      const response = await axiosInstance.post("/learning-plans", plan)
+      return response.data
     },
 
     update: async (
@@ -139,95 +144,98 @@ export const api = {
         }>
       },
     ) => {
-      const response = await api.fetch(`/learning-plans/${id}`, {
-        method: "PUT",
-        body: JSON.stringify(plan),
-      })
-
-      return response.json()
+      const response = await axiosInstance.put(`/learning-plans/${id}`, plan)
+      return response.data
     },
 
     delete: async (id: number) => {
-      await api.fetch(`/learning-plans/${id}`, {
-        method: "DELETE",
-      })
+      await axiosInstance.delete(`/learning-plans/${id}`)
     },
   },
 
   // Users API
   users: {
     getCurrentUser: async () => {
-      const response = await api.fetch("/users/me")
-      return response.json()
+      const response = await axiosInstance.get("/users/me")
+      return response.data
     },
 
     getById: async (id: number) => {
-      const response = await api.fetch(`/users/${id}`)
-      return response.json()
+      const response = await axiosInstance.get(`/users/${id}`)
+      return response.data
     },
 
     updateProfile: async (data: { name: string; bio: string }) => {
-      const response = await api.fetch("/users/me", {
-        method: "PUT",
-        body: JSON.stringify(data),
-      })
-
-      return response.json()
+      const response = await axiosInstance.put("/users/me", data)
+      return response.data
     },
 
     updateProfilePicture: async (file: File) => {
       const formData = new FormData()
       formData.append("file", file)
 
-      const response = await api.fetch("/users/me/profile-picture", {
-        method: "POST",
-        body: formData,
-        headers: {}, // Let the browser set the content type for FormData
+      const response = await axiosInstance.post("/users/me/profile-picture", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       })
-
-      return response.json()
+      return response.data
     },
 
     follow: async (id: number) => {
-      await api.fetch(`/users/${id}/follow`, {
-        method: "POST",
-      })
+      await axiosInstance.post(`/users/${id}/follow`)
     },
 
     unfollow: async (id: number) => {
-      await api.fetch(`/users/${id}/follow`, {
-        method: "DELETE",
-      })
+      await axiosInstance.delete(`/users/${id}/follow`)
     },
 
     search: async (query: string) => {
-      const response = await api.fetch(`/users/search?query=${encodeURIComponent(query)}`)
-      return response.json()
+      const response = await axiosInstance.get(`/users/search?query=${encodeURIComponent(query)}`)
+      return response.data
     },
   },
 
   // Notifications API
   notifications: {
     getAll: async (page = 0, size = 10) => {
-      const response = await api.fetch(`/notifications?page=${page}&size=${size}`)
-      return response.json()
+      const response = await axiosInstance.get(`/notifications?page=${page}&size=${size}`)
+      return response.data
     },
 
     getUnreadCount: async () => {
-      const response = await api.fetch("/notifications/unread-count")
-      return response.json()
+      const response = await axiosInstance.get("/notifications/unread-count")
+      return response.data
     },
 
     markAllAsRead: async () => {
-      await api.fetch("/notifications/mark-all-read", {
-        method: "POST",
-      })
+      await axiosInstance.post("/notifications/mark-all-read")
     },
 
     clearRead: async () => {
-      await api.fetch("/notifications/clear-read", {
-        method: "DELETE",
+      await axiosInstance.delete("/notifications/clear-read")
+    },
+  },
+
+  // Auth API
+  auth: {
+    login: async (email: string, password: string) => {
+      const response = await axios.post(`${axiosInstance.defaults.baseURL}/auth/login`, {
+        email,
+        password,
       })
+      return response.data
+    },
+
+    register: async (name: string, email: string, password: string) => {
+      const response = await axios.post(`${axiosInstance.defaults.baseURL}/auth/register`, {
+        name,
+        email,
+        password,
+      })
+      return response.data
     },
   },
 }
+
+export default api
