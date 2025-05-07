@@ -1,5 +1,6 @@
+// Configuration for connecting to the Spring Boot backend
 export const api = {
-  baseUrl: "http://localhost:8080", // Change this to your backend URL
+  baseUrl: "http://localhost:8080", // Change this to your Spring Boot backend URL
 
   // Helper function to handle API requests with authentication
   async fetch(endpoint: string, options: RequestInit = {}) {
