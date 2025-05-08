@@ -6,7 +6,7 @@ import DashboardLayout from "@/components/dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Heart, MessageSquare, Share, Search } from "lucide-react"
+import { Heart, MessageSquare, Share, Search } from 'lucide-react'
 import { useToast } from "@/components/ui/use-toast"
 import { Input } from "@/components/ui/input"
 import { format } from "date-fns"
@@ -127,13 +127,13 @@ export default function ExplorePage() {
                     <CardContent className="pt-6">
                       <div className="flex items-start space-x-4">
                         <Avatar>
-                          <AvatarImage src={post.user.profilePicture || "/placeholder.svg"} />
-                          <AvatarFallback>{post.user.name.charAt(0)}</AvatarFallback>
+                          <AvatarImage src={post.user?.profilePicture || "/placeholder.svg"} />
+                          <AvatarFallback>{post.user?.name?.charAt(0) || "U"}</AvatarFallback>
                         </Avatar>
                         <div className="flex-1 space-y-1">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="font-medium">{post.user.name}</p>
+                              <p className="font-medium">{post.user?.name || "Unknown User"}</p>
                               <p className="text-xs text-muted-foreground">
                                 {format(new Date(post.createdAt), "MMM d, yyyy")}
                               </p>
@@ -215,10 +215,10 @@ export default function ExplorePage() {
                         <div className="flex items-center space-x-3">
                           <Avatar>
                             <AvatarImage src={user.profilePicture || "/placeholder.svg"} />
-                            <AvatarFallback>{user.name.charAt(0)}</AvatarFallback>
+                            <AvatarFallback>{user.name?.charAt(0) || "U"}</AvatarFallback>
                           </Avatar>
                           <div>
-                            <p className="font-medium">{user.name}</p>
+                            <p className="font-medium">{user.name || "Unknown User"}</p>
                             <p className="text-xs text-muted-foreground">{user.email}</p>
                           </div>
                         </div>

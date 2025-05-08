@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Bell, Home, LogOut, Menu, User, BookOpen, Users } from "lucide-react"
+import { Bell, Home, LogOut, Menu, User, BookOpen, Users } from 'lucide-react'
 import Link from "next/link"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import api from "@/lib/api"
@@ -40,6 +40,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   if (isLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>
+      </div>
+    )
+  }
+
+  // Ensure user is defined before rendering the layout
+  if (!user) {
     return (
       <div className="flex h-screen items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent"></div>

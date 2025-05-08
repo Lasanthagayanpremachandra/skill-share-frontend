@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Heart, MessageSquare, Plus, Share, ImageIcon } from "lucide-react"
+import { Heart, MessageSquare, Plus, Share, ImageIcon } from 'lucide-react'
 import { useAuth } from "@/context/auth-context"
 import { useToast } from "@/components/ui/use-toast"
 import { Textarea } from "@/components/ui/textarea"
@@ -229,13 +229,13 @@ export default function DashboardPage() {
                       <CardContent className="pt-6">
                         <div className="flex items-start space-x-4">
                           <Avatar>
-                            <AvatarImage src={post.user.profilePicture || "/placeholder.svg"} />
-                            <AvatarFallback>{post.user.name.charAt(0)}</AvatarFallback>
+                            <AvatarImage src={post.user?.profilePicture || "/placeholder.svg"} />
+                            <AvatarFallback>{post.user?.name?.charAt(0) || "U"}</AvatarFallback>
                           </Avatar>
                           <div className="flex-1 space-y-1">
                             <div className="flex items-center justify-between">
                               <div>
-                                <p className="font-medium">{post.user.name}</p>
+                                <p className="font-medium">{post.user?.name || "Unknown User"}</p>
                                 <p className="text-xs text-muted-foreground">
                                   {format(new Date(post.createdAt), "MMM d, yyyy")}
                                 </p>
