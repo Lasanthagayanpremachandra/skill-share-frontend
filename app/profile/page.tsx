@@ -15,7 +15,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { useAuth } from "@/context/auth-context"
 import { useToast } from "@/components/ui/use-toast"
 import { format } from "date-fns"
-import { Upload } from "lucide-react"
 
 export default function ProfilePage() {
   const { user } = useAuth()
@@ -23,7 +22,6 @@ export default function ProfilePage() {
   const [name, setName] = useState("")
   const [bio, setBio] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  const [isUploadingImage, setIsUploadingImage] = useState(false)
   const [userPosts, setUserPosts] = useState([])
   const [userLearningPlans, setUserLearningPlans] = useState([])
 
@@ -80,35 +78,13 @@ export default function ProfilePage() {
     const file = e.target.files?.[0]
     if (!file) return
 
-    setIsUploadingImage(true)
-    try {
-      // First upload the file
-      const fileUrl = await api.files.upload(file, "profile-picture")
-
-      // Then update the profile with the file URL
-      await api.users.updateProfile({
-        name,
-        bio,
-        profilePictureUrl: fileUrl,
-      })
-
-      toast({
-        title: "Profile picture updated",
-        description: "Your profile picture has been updated successfully.",
-      })
-
-      // Refresh user data (this would typically be handled by your auth context)
-      window.location.reload()
-    } catch (error) {
-      console.error("Error updating profile picture:", error)
-      toast({
-        title: "Update failed",
-        description: "Failed to update profile picture. Please try again.",
-        variant: "destructive",
-      })
-    } finally {
-      setIsUploadingImage(false)
-    }
+    // For profile picture uploads, you'll need to implement a file upload endpoint
+    // on your backend and then update the profile with the URL
+    toast({
+      title: "Feature not implemented",
+      description: "Profile picture upload requires a file upload endpoint on your backend.",
+      variant: "destructive",
+    })
   }
 
   return (
@@ -131,11 +107,20 @@ export default function ProfilePage() {
                     htmlFor="profile-picture"
                     className="absolute -bottom-2 -right-2 cursor-pointer rounded-full bg-primary p-1 text-primary-foreground"
                   >
-                    {isUploadingImage ? (
-                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary-foreground border-t-transparent"></div>
-                    ) : (
-                      <Upload className="h-4 w-4" />
-                    )}
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                      <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+                    </svg>
                     <span className="sr-only">Change profile picture</span>
                     <Input
                       id="profile-picture"
@@ -143,7 +128,6 @@ export default function ProfilePage() {
                       accept="image/*"
                       className="hidden"
                       onChange={handleProfilePictureChange}
-                      disabled={isUploadingImage}
                     />
                   </label>
                 </div>

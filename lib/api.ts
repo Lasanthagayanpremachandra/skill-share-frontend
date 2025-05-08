@@ -37,25 +37,6 @@ axiosInstance.interceptors.response.use(
   },
 )
 
-// Separate axios instance for file uploads
-const fileUploadInstance = axios.create({
-  baseURL: "http://localhost:8080",
-})
-
-// Add auth token to file upload requests
-fileUploadInstance.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem("token")
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`
-    }
-    return config
-  },
-  (error) => {
-    return Promise.reject(error)
-  },
-)
-
 // API service using axios
 export const api = {
   // File upload utility
@@ -65,7 +46,7 @@ export const api = {
       formData.append("file", file)
       formData.append("type", type)
 
-      const response = await fileUploadInstance.post("/files/upload", formData, {
+      const response = await axiosInstance.post("/files/upload", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -93,18 +74,42 @@ export const api = {
     },
 
     create: async (content: string, type: string, mediaUrls: string[] = []) => {
-      const response = await axiosInstance.post("/posts", {
-        content,
-        type,
-        mediaUrls, // Array of URLs from previously uploaded files
+      // Use FormData instead of JSON for post creation
+      const formData = new FormData()
+      formData.append("content", content)
+      formData.append("type", type)
+
+      // Add media URLs if available
+      if (mediaUrls.length > 0) {
+        mediaUrls.forEach((url, index) => {
+          formData.append(`mediaUrls[${index}]`, url)
+        })
+      }
+
+      const response = await axiosInstance.post("/posts", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       })
       return response.data
     },
 
     update: async (id: number, content: string, mediaUrls: string[] = []) => {
-      const response = await axiosInstance.put(`/posts/${id}`, {
-        content,
-        mediaUrls,
+      // Use FormData for post updates as well
+      const formData = new FormData()
+      formData.append("content", content)
+
+      // Add media URLs if available
+      if (mediaUrls.length > 0) {
+        mediaUrls.forEach((url, index) => {
+          formData.append(`mediaUrls[${index}]`, url)
+        })
+      }
+
+      const response = await axiosInstance.put(`/posts/${id}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       })
       return response.data
     },
@@ -139,14 +144,38 @@ export const api = {
     create: async (plan: {
       title: string
       description: string
-      targetCompletionDate: string
+      targetCompletionDate: string | null
       steps: Array<{
         title: string
         description: string
         resourceUrl?: string
       }>
     }) => {
-      const response = await axiosInstance.post("/learning-plans", plan)
+      // Convert to FormData
+      const formData = new FormData()
+      formData.append("title", plan.title)
+      formData.append("description", plan.description)
+
+      if (plan.targetCompletionDate) {
+        formData.append("targetCompletionDate", plan.targetCompletionDate)
+      }
+
+      // Add steps
+      if (plan.steps && plan.steps.length > 0) {
+        plan.steps.forEach((step, index) => {
+          formData.append(`steps[${index}].title`, step.title)
+          formData.append(`steps[${index}].description`, step.description)
+          if (step.resourceUrl) {
+            formData.append(`steps[${index}].resourceUrl`, step.resourceUrl)
+          }
+        })
+      }
+
+      const response = await axiosInstance.post("/learning-plans", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
       return response.data
     },
 
@@ -155,7 +184,7 @@ export const api = {
       plan: {
         title: string
         description: string
-        targetCompletionDate: string
+        targetCompletionDate: string | null
         steps: Array<{
           title: string
           description: string
@@ -163,7 +192,31 @@ export const api = {
         }>
       },
     ) => {
-      const response = await axiosInstance.put(`/learning-plans/${id}`, plan)
+      // Convert to FormData
+      const formData = new FormData()
+      formData.append("title", plan.title)
+      formData.append("description", plan.description)
+
+      if (plan.targetCompletionDate) {
+        formData.append("targetCompletionDate", plan.targetCompletionDate)
+      }
+
+      // Add steps
+      if (plan.steps && plan.steps.length > 0) {
+        plan.steps.forEach((step, index) => {
+          formData.append(`steps[${index}].title`, step.title)
+          formData.append(`steps[${index}].description`, step.description)
+          if (step.resourceUrl) {
+            formData.append(`steps[${index}].resourceUrl`, step.resourceUrl)
+          }
+        })
+      }
+
+      const response = await axiosInstance.put(`/learning-plans/${id}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
       return response.data
     },
 
@@ -185,7 +238,20 @@ export const api = {
     },
 
     updateProfile: async (data: { name: string; bio: string; profilePictureUrl?: string }) => {
-      const response = await axiosInstance.put("/users/me", data)
+      // Convert to FormData
+      const formData = new FormData()
+      formData.append("name", data.name)
+      formData.append("bio", data.bio)
+
+      if (data.profilePictureUrl) {
+        formData.append("profilePictureUrl", data.profilePictureUrl)
+      }
+
+      const response = await axiosInstance.put("/users/me", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
       return response.data
     },
 
@@ -227,18 +293,30 @@ export const api = {
   // Auth API
   auth: {
     login: async (email: string, password: string) => {
-      const response = await axios.post(`${axiosInstance.defaults.baseURL}/auth/login`, {
-        email,
-        password,
+      // Convert to FormData
+      const formData = new FormData()
+      formData.append("email", email)
+      formData.append("password", password)
+
+      const response = await axios.post(`${axiosInstance.defaults.baseURL}/auth/login`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       })
       return response.data
     },
 
     register: async (name: string, email: string, password: string) => {
-      const response = await axios.post(`${axiosInstance.defaults.baseURL}/auth/register`, {
-        name,
-        email,
-        password,
+      // Convert to FormData
+      const formData = new FormData()
+      formData.append("name", name)
+      formData.append("email", email)
+      formData.append("password", password)
+
+      const response = await axios.post(`${axiosInstance.defaults.baseURL}/auth/register`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       })
       return response.data
     },
