@@ -3,32 +3,15 @@ import type { NextRequest } from "next/server"
 
 // This function can be marked `async` if using `await` inside
 export function middleware(request: NextRequest) {
-  const token = request.cookies.get("token")?.value
-  const isAuthPage = request.nextUrl.pathname.startsWith("/auth")
-
-  // If trying to access auth pages while logged in, redirect to dashboard
-  if (isAuthPage && token) {
-    return NextResponse.redirect(new URL("/dashboard", request.url))
-  }
-
-  // If trying to access protected pages without being logged in, redirect to login
-  const isProtectedRoute =
-    request.nextUrl.pathname.startsWith("/dashboard") ||
-    request.nextUrl.pathname.startsWith("/learning-plans") ||
-    request.nextUrl.pathname.startsWith("/profile") ||
-    request.nextUrl.pathname.startsWith("/notifications") ||
-    request.nextUrl.pathname.startsWith("/explore")
-
-  if (isProtectedRoute && !token) {
-    return NextResponse.redirect(new URL("/auth/login", request.url))
-  }
-
+  // We'll handle authentication client-side since we're using a separate backend
+  // No need for server-side middleware authentication checks
   return NextResponse.next()
 }
 
 // See "Matching Paths" below to learn more
 export const config = {
   matcher: [
+    // We'll keep the matchers for potential future use, but the middleware won't block access
     "/dashboard/:path*",
     "/learning-plans/:path*",
     "/profile/:path*",

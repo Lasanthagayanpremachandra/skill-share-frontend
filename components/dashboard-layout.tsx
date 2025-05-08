@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useAuth } from "@/context/auth-context"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -10,7 +9,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Bell, Home, LogOut, Menu, User, BookOpen, Users } from "lucide-react"
 import Link from "next/link"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { api } from "@/lib/api"
+import api from "@/lib/api"
 import { Badge } from "@/components/ui/badge"
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -18,6 +17,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter()
   const [unreadCount, setUnreadCount] = useState(0)
 
+  // Client-side authentication check
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.push("/auth/login")
