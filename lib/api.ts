@@ -255,31 +255,30 @@ export const api = {
   // Auth API
   auth: {
     login: async (email: string, password: string) => {
-      // Convert to FormData
-      const formData = new FormData()
-      formData.append("email", email)
-      formData.append("password", password)
-
-      const response = await axios.post(`${axiosInstance.defaults.baseURL}/auth/login`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
+      // Use JSON instead of FormData
+      const response = await axios.post(
+        `${axiosInstance.defaults.baseURL}/auth/login`,
+        { email, password },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
         },
-      })
+      )
       return response.data
     },
 
     register: async (name: string, email: string, password: string) => {
-      // Convert to FormData
-      const formData = new FormData()
-      formData.append("name", name)
-      formData.append("email", email)
-      formData.append("password", password)
-
-      const response = await axios.post(`${axiosInstance.defaults.baseURL}/auth/register`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
+      // Use JSON instead of FormData
+      const response = await axios.post(
+        `${axiosInstance.defaults.baseURL}/auth/register`,
+        { name, email, password },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
         },
-      })
+      )
       return response.data
     },
   },

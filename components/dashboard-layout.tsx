@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Bell, Home, LogOut, Menu, User, BookOpen, Users } from 'lucide-react'
+import { Bell, Home, LogOut, Menu, User, BookOpen, Users } from "lucide-react"
 import Link from "next/link"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import api from "@/lib/api"
@@ -137,6 +137,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   </Avatar>
                 </Button>
               </Link>
+              <Button variant="ghost" size="sm" onClick={logout} className="ml-2">
+                <LogOut className="h-4 w-4 mr-2" />
+                Logout
+              </Button>
             </nav>
           </div>
         </div>
