@@ -56,6 +56,11 @@ public class Post {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
+    @ElementCollection
+    @CollectionTable(name = "post_media", joinColumns = @JoinColumn(name = "post_id"))
+    @Column(name = "media_url")
+    private List<String> mediaUrls = new ArrayList<>();
+
     @CreatedDate
     private LocalDateTime createdAt;
 

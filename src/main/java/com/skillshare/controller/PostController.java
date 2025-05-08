@@ -1,5 +1,6 @@
 package com.skillshare.controller;
 
+import com.skillshare.dto.PostRequest;
 import com.skillshare.model.Post;
 import com.skillshare.model.PostType;
 import com.skillshare.model.User;
@@ -42,20 +43,20 @@ public class PostController {
     @PostMapping
     public ResponseEntity<Post> createPost(
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestParam("content") String content,
-            @RequestParam("type") String type,
-            @RequestParam(value = "media", required = false) List<MultipartFile> media
+            @RequestBody PostRequest postRequest
     ) {
         User user = userRepository.findByEmail(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         Post post = new Post();
-        post.setContent(content);
+        post.setContent(postRequest.getContent());
         post.setUser(user);
-        post.setType(PostType.valueOf(type));
+        post.setType(PostType.valueOf(postRequest.getType()));
 
-        // TODO: Handle media file upload and storage
-        
+        // Handle media URLs if provided
+        // This would typically involve storing the URLs in the post entity
+        // You might need to add a mediaUrls field to your Post entity
+
         return ResponseEntity.ok(postRepository.save(post));
     }
 
