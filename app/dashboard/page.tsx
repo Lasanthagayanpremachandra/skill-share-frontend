@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Heart, MessageSquare, Plus, Share } from "lucide-react"
+import { Heart, MessageSquare, Plus, Share, ImageIcon } from "lucide-react"
 import { useAuth } from "@/context/auth-context"
 import { useToast } from "@/components/ui/use-toast"
 import { Textarea } from "@/components/ui/textarea"
@@ -28,6 +28,7 @@ interface Post {
   createdAt: string
   likes: any[]
   comments: any[]
+  mediaUrls?: string[]
 }
 
 interface LearningPlan {
@@ -50,6 +51,8 @@ export default function DashboardPage() {
   const [newPostContent, setNewPostContent] = useState("")
   const [isPostLoading, setIsPostLoading] = useState(false)
   const [activeTab, setActiveTab] = useState("feed")
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([])
+  const [uploadingFiles, setUploadingFiles] = useState(false)
   const { user } = useAuth()
   const { toast } = useToast()
 
@@ -81,14 +84,44 @@ export default function DashboardPage() {
     }
   }
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files) {
+      const filesArray = Array.from(e.target.files)
+      setSelectedFiles(filesArray)
+    }
+  }
+
   const handleCreatePost = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!newPostContent.trim()) return
 
     setIsPostLoading(true)
     try {
-      await api.posts.create(newPostContent, "SKILL_SHARING")
+      // First, upload any files if present
+      const mediaUrls: string[] = []
+
+      if (selectedFiles.length > 0) {
+        setUploadingFiles(true)
+        for (const file of selectedFiles) {
+          try {
+            const fileUrl = await api.files.upload(file, "post-media")
+            mediaUrls.push(fileUrl)
+          } catch (error) {
+            console.error("Error uploading file:", error)
+            toast({
+              title: "Error",
+              description: "Failed to upload file. Please try again.",
+              variant: "destructive",
+            })
+          }
+        }
+        setUploadingFiles(false)
+      }
+
+      // Then create the post with the file URLs
+      await api.posts.create(newPostContent, "SKILL_SHARING", mediaUrls)
       setNewPostContent("")
+      setSelectedFiles([])
       toast({
         title: "Success",
         description: "Post created successfully!",
@@ -148,9 +181,30 @@ export default function DashboardPage() {
                           onChange={(e) => setNewPostContent(e.target.value)}
                           className="min-h-[100px]"
                         />
+                        <div className="flex items-center">
+                          <label htmlFor="post-media" className="cursor-pointer">
+                            <div className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+                              <ImageIcon className="h-4 w-4" />
+                              <span>Add Image</span>
+                            </div>
+                            <input
+                              id="post-media"
+                              type="file"
+                              accept="image/*"
+                              multiple
+                              className="hidden"
+                              onChange={handleFileChange}
+                            />
+                          </label>
+                          {selectedFiles.length > 0 && (
+                            <span className="ml-2 text-sm text-muted-foreground">
+                              {selectedFiles.length} file(s) selected
+                            </span>
+                          )}
+                        </div>
                         <div className="flex justify-end">
-                          <Button type="submit" disabled={isPostLoading || !newPostContent.trim()}>
-                            {isPostLoading ? "Posting..." : "Post"}
+                          <Button type="submit" disabled={isPostLoading || uploadingFiles || !newPostContent.trim()}>
+                            {isPostLoading || uploadingFiles ? "Posting..." : "Post"}
                           </Button>
                         </div>
                       </div>
@@ -188,6 +242,21 @@ export default function DashboardPage() {
                               </div>
                             </div>
                             <p className="text-sm">{post.content}</p>
+
+                            {/* Display media if available */}
+                            {post.mediaUrls && post.mediaUrls.length > 0 && (
+                              <div className="mt-2 grid gap-2 grid-cols-2">
+                                {post.mediaUrls.map((url, index) => (
+                                  <img
+                                    key={index}
+                                    src={url || "/placeholder.svg"}
+                                    alt={`Post media ${index + 1}`}
+                                    className="rounded-md max-h-64 w-auto object-cover"
+                                  />
+                                ))}
+                              </div>
+                            )}
+
                             <div className="flex items-center space-x-4 pt-2">
                               <Button
                                 variant="ghost"

@@ -37,8 +37,44 @@ axiosInstance.interceptors.response.use(
   },
 )
 
+// Separate axios instance for file uploads
+const fileUploadInstance = axios.create({
+  baseURL: "http://localhost:8080",
+})
+
+// Add auth token to file upload requests
+fileUploadInstance.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token")
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  },
+)
+
 // API service using axios
 export const api = {
+  // File upload utility
+  files: {
+    upload: async (file: File, type: "post-media" | "profile-picture" | "other" = "other") => {
+      const formData = new FormData()
+      formData.append("file", file)
+      formData.append("type", type)
+
+      const response = await fileUploadInstance.post("/files/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      })
+
+      return response.data.fileUrl // Return the URL of the uploaded file
+    },
+  },
+
   // Posts API
   posts: {
     getAll: async (page = 0, size = 10) => {
@@ -56,36 +92,19 @@ export const api = {
       return response.data
     },
 
-    create: async (content: string, type: string, media?: File[]) => {
-      // For file uploads, we still need to use FormData
-      if (media && media.length > 0) {
-        const formData = new FormData()
-        formData.append("content", content)
-        formData.append("type", type)
-
-        media.forEach((file) => {
-          formData.append("media", file)
-        })
-
-        const response = await axiosInstance.post("/posts", formData, {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        })
-        return response.data
-      } else {
-        // Without files, we can use JSON
-        const response = await axiosInstance.post("/posts", {
-          content,
-          type,
-        })
-        return response.data
-      }
+    create: async (content: string, type: string, mediaUrls: string[] = []) => {
+      const response = await axiosInstance.post("/posts", {
+        content,
+        type,
+        mediaUrls, // Array of URLs from previously uploaded files
+      })
+      return response.data
     },
 
-    update: async (id: number, content: string) => {
+    update: async (id: number, content: string, mediaUrls: string[] = []) => {
       const response = await axiosInstance.put(`/posts/${id}`, {
         content,
+        mediaUrls,
       })
       return response.data
     },
@@ -165,20 +184,8 @@ export const api = {
       return response.data
     },
 
-    updateProfile: async (data: { name: string; bio: string }) => {
+    updateProfile: async (data: { name: string; bio: string; profilePictureUrl?: string }) => {
       const response = await axiosInstance.put("/users/me", data)
-      return response.data
-    },
-
-    updateProfilePicture: async (file: File) => {
-      const formData = new FormData()
-      formData.append("file", file)
-
-      const response = await axiosInstance.post("/users/me/profile-picture", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      })
       return response.data
     },
 
