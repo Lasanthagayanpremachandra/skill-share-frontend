@@ -151,29 +151,10 @@ export const api = {
         resourceUrl?: string
       }>
     }) => {
-      // Convert to FormData
-      const formData = new FormData()
-      formData.append("title", plan.title)
-      formData.append("description", plan.description)
-
-      if (plan.targetCompletionDate) {
-        formData.append("targetCompletionDate", plan.targetCompletionDate)
-      }
-
-      // Add steps
-      if (plan.steps && plan.steps.length > 0) {
-        plan.steps.forEach((step, index) => {
-          formData.append(`steps[${index}].title`, step.title)
-          formData.append(`steps[${index}].description`, step.description)
-          if (step.resourceUrl) {
-            formData.append(`steps[${index}].resourceUrl`, step.resourceUrl)
-          }
-        })
-      }
-
-      const response = await axiosInstance.post("/learning-plans", formData, {
+      // Use JSON instead of FormData
+      const response = await axiosInstance.post("/learning-plans", plan, {
         headers: {
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/json",
         },
       })
       return response.data
@@ -192,29 +173,10 @@ export const api = {
         }>
       },
     ) => {
-      // Convert to FormData
-      const formData = new FormData()
-      formData.append("title", plan.title)
-      formData.append("description", plan.description)
-
-      if (plan.targetCompletionDate) {
-        formData.append("targetCompletionDate", plan.targetCompletionDate)
-      }
-
-      // Add steps
-      if (plan.steps && plan.steps.length > 0) {
-        plan.steps.forEach((step, index) => {
-          formData.append(`steps[${index}].title`, step.title)
-          formData.append(`steps[${index}].description`, step.description)
-          if (step.resourceUrl) {
-            formData.append(`steps[${index}].resourceUrl`, step.resourceUrl)
-          }
-        })
-      }
-
-      const response = await axiosInstance.put(`/learning-plans/${id}`, formData, {
+      // Use JSON instead of FormData
+      const response = await axiosInstance.put(`/learning-plans/${id}`, plan, {
         headers: {
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/json",
         },
       })
       return response.data
