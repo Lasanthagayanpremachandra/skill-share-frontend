@@ -19,6 +19,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>
   register: (name: string, email: string, password: string) => Promise<void>
   logout: () => void
+  setToken: (token: string) => void
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -38,6 +39,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsLoading(false)
     }
   }, [])
+
+  useEffect(() => {
+    // Fetch user data when token changes
+    if (token) {
+      fetchCurrentUser()
+    }
+  }, [token])
 
   const fetchCurrentUser = async () => {
     try {
@@ -91,6 +99,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         login,
         register,
         logout,
+        setToken,
       }}
     >
       {children}

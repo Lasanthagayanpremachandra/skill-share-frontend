@@ -49,6 +49,11 @@ export default function LoginPage() {
     }
   }
 
+  const handleOAuthLogin = (provider: string) => {
+    // Redirect to the backend OAuth endpoint
+    window.location.href = `http://localhost:8080/oauth2/authorization/${provider}`
+  }
+
   if (authLoading || isAuthenticated) {
     return (
       <div className="flex h-screen items-center justify-center">
@@ -87,11 +92,69 @@ export default function LoginPage() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-          </CardContent>
-          <CardFooter className="flex flex-col space-y-4">
             <Button className="w-full" type="submit" disabled={isLoading}>
               {isLoading ? "Signing in..." : "Sign in"}
             </Button>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => handleOAuthLogin("google")}
+                className="flex items-center justify-center gap-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-red-500"
+                >
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M8 12 h8"></path>
+                  <path d="M12 8 v8"></path>
+                </svg>
+                Google
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => handleOAuthLogin("facebook")}
+                className="flex items-center justify-center gap-2"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="text-blue-600"
+                >
+                  <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
+                </svg>
+                Facebook
+              </Button>
+            </div>
+          </CardContent>
+          <CardFooter className="flex flex-col space-y-4">
             <div className="text-center text-sm">
               Don&apos;t have an account?{" "}
               <Link href="/auth/register" className="underline">
