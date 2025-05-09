@@ -1,17 +1,16 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import api from "@/lib/api"
 import DashboardLayout from "@/components/dashboard-layout"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Heart, MessageSquare, Share, Search } from 'lucide-react'
-import { useToast } from "@/components/ui/use-toast"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { format } from "date-fns"
-import Link from "next/link"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useToast } from "@/components/ui/use-toast"
+import api from "@/lib/api"
+import { Heart, MessageSquare, Search, Share } from 'lucide-react'
+import Link from "next/link"
+import { useEffect, useState } from "react"
 
 interface Post {
   id: number
@@ -135,7 +134,7 @@ export default function ExplorePage() {
                             <div>
                               <p className="font-medium">{post.user?.name || "Unknown User"}</p>
                               <p className="text-xs text-muted-foreground">
-                                {format(new Date(post.createdAt), "MMM d, yyyy")}
+                                {/* {format(new Date(post.createdAt), "MMM d, yyyy")} */}
                               </p>
                             </div>
                           </div>
